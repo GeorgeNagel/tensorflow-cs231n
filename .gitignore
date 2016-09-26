@@ -1,2 +1,8 @@
 # Python virtual environment
 virtualenv
+
+# Data files
+*.gz
+
+# Vim swap files
+*.swp
