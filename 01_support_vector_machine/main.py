@@ -35,32 +35,46 @@ def numerical_gradient(W, x, b, correct_class_index):
     Estimate the gradient of function func at point x (a numpy vector).
     """
     # Evaluate the funcation at the original point.
-    loss_W = vectorized_loss(x, correct_class_index, W, b)
+    loss_initial = vectorized_loss(x, correct_class_index, W, b)
     grad_W = np.zeros(W.shape)
     h = 0.0001
 
     # Iterate over all indexes in x
     it = np.nditer(W, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
-        # Evaluate funcation at W + h
+        # Evaluate loss at W + h
         iW = it.multi_index
         old_value = W[iW]
         # Increment by h
         W[iW] = old_value + h
-        # Evaluate f(x + h)
+        # Evaluate loss(W + h)
         loss_Wh = vectorized_loss(x, correct_class_index, W, b)
         # Restore to previous value
         W[iW] = old_value
 
         # Compute the partial derivative
-        grad_W[iW] = (loss_Wh - loss_W) / h
+        grad_W[iW] = (loss_Wh - loss_initial) / h
         # Step to next dimension
         it.iternext()
 
     grad_b = np.zeros(b.shape)
     # Iterate over all indexes in b
     it = np.nditer(b, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        # Evaluate loss at b + h
+        ib = it.multi_index
+        old_value = b[ib]
+        # Increment by h
+        b[ib] = old_value + h
+        # Evaluate loss(b + h)
+        loss_bh = vectorized_loss(x, correct_class_index, W, b)
+        # Restore to previous value
+        b[ib] = old_value
 
+        # Compute the partial derivative
+        grad_b[ib] = (loss_bh - loss_initial) / h
+        # Step to next dimension
+        it.iternext()
     return grad_W, grad_b
 
 

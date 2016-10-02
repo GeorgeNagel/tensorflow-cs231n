@@ -19,3 +19,6 @@ class TestGradient(TestCase):
             [1, 2, 3]
         ], dtype=np.float64)
         self.assertTrue(np.allclose(grad_W, expected_grad_W))
+
+        expected_grad_b = np.array([-1, 1], dtype=np.float64)
+        self.assertTrue(np.allclose(grad_b, expected_grad_b))
