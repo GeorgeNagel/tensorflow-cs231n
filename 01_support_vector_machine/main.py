@@ -1,26 +1,5 @@
 # This file trains a Support Vector Machine (SVM) on the iris dataset
-from tensorflow.contrib import learn
 import numpy as np
-
-# The output y will be calculated via
-# y = W * x + b
-iris = learn.datasets.load_dataset('iris')
-
-# The loss function for an SVM
-# Li = Sum<j!=yi>(max(0, sj - sy + 1)) + L1norm(W)
-# We can derive the gradient from this
-
-# We're going to do the train/backprop loop in numpy
-
-
-def vectorized_loss(x, correct_class_index, W):
-    scores = np.dot(W, x)
-    margins = np.maximum(0, scores - scores[correct_class_index] + 1)
-    # Setting the correct class margin to zero after the fact
-    # makes it easier to take advantage of the vectorized approach as above
-    margins[correct_class_index] = 0
-    loss = np.sum(margins)
-    return loss
 
 
 def analytic_gradient(W, x, b, y_expected):
@@ -51,33 +30,48 @@ def analytic_gradient(W, x, b, y_expected):
     return W_grad, b_grad
 
 
-def numerical_gradient(func, x):
+def numerical_gradient(W, x, b, correct_class_index):
     """
     Estimate the gradient of function func at point x (a numpy vector).
     """
     # Evaluate the funcation at the original point.
-    fx = func(x)
-    gradient = np.zeros(x.shape)
+    loss_W = vectorized_loss(x, correct_class_index, W, b)
+    grad_W = np.zeros(W.shape)
     h = 0.0001
 
     # Iterate over all indexes in x
-    it = np.nditer(x, flags=['multi_index'], op_flags=['readwriter'])
+    it = np.nditer(W, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
-        # Evaluate funcation at x + h
-        ix = it.multi_index
-        old_value = x[ix]
+        # Evaluate funcation at W + h
+        iW = it.multi_index
+        old_value = W[iW]
         # Increment by h
-        x[ix] = old_value + h
+        W[iW] = old_value + h
         # Evaluate f(x + h)
-        fxh = func(x)
+        loss_Wh = vectorized_loss(x, correct_class_index, W, b)
         # Restore to previous value
-        x[ix] = old_value
+        W[iW] = old_value
 
         # Compute the partial derivative
-        gradient[ix] = (fxh - fx) / h
+        grad_W[iW] = (loss_Wh - loss_W) / h
         # Step to next dimension
         it.iternext()
-    return gradient
+
+    grad_b = np.zeros(b.shape)
+    # Iterate over all indexes in b
+    it = np.nditer(b, flags=['multi_index'], op_flags=['readwrite'])
+
+    return grad_W, grad_b
+
+
+def vectorized_loss(x, correct_class_index, W, b):
+    scores = np.dot(W, x) + b
+    margins = np.maximum(0, scores - scores[correct_class_index] + 1)
+    # Setting the correct class margin to zero after the fact
+    # makes it easier to take advantage of the vectorized approach as above
+    margins[correct_class_index] = 0
+    loss = np.sum(margins)
+    return loss
 
 
 def predict(W, x, b):
@@ -87,14 +81,21 @@ def predict(W, x, b):
     y_predicted = np.zeros(3)
     return y_predicted
 
-import pdb
-pdb.set_trace()
 
-# Each x sample has four dimensions,
-# and belongs to one of three possible classes
-# By dimensional analysis, since W must be
-# multiplied by x and added to an array to get y, W must be 4x3.
-# 3x4 * 4x1 + 3x1 => 3x1
-W_initial = np.zeros([3, 4])
-# Similarly, b must be a 3x1 array
-b_initial = np.zeros([3, 1])
+if __name__ == '__main__':
+    from tensorflow.contrib import learn
+    # The output y will be calculated via
+    # y = W * x + b
+    iris = learn.datasets.load_dataset('iris')
+
+    # The loss function for an SVM
+    # Li = Sum<j!=yi>(max(0, sj - sy + 1)) + L1norm(W)
+
+    # Each x sample has four dimensions,
+    # and belongs to one of three possible classes
+    # By dimensional analysis, since W must be
+    # multiplied by x and added to an array to get y, W must be 4x3.
+    # 3x4 * 4x1 + 3x1 => 3x1
+    W_initial = np.zeros([3, 4])
+    # Similarly, b must be a 3x1 array
+    b_initial = np.zeros([3, 1])
