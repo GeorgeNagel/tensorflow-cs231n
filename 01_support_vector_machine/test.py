@@ -15,7 +15,7 @@ class TestGradient(TestCase):
 
         grad_W, grad_b = numerical_gradient(W, x, b, correct_class_index)
         expected_grad_W = np.array([
-            [-1., -2., -3.],
-            [1., 2., 3.]
-        ])
+            [-1, -2, -3],
+            [1, 2, 3]
+        ], dtype=np.float64)
         self.assertTrue(np.allclose(grad_W, expected_grad_W))
