@@ -30,53 +30,33 @@ def analytic_gradient(W, x, b, y_expected):
     return W_grad, b_grad
 
 
-def numerical_gradient(W, x, b, correct_class_index):
+def numerical_gradient(func, x):
     """
     Estimate the gradient of function func at point x (a numpy vector).
     """
     # Evaluate the funcation at the original point.
-    loss_initial = vectorized_loss(x, correct_class_index, W, b)
-    grad_W = np.zeros(W.shape)
+    initial = func(x)
+    grad_x = np.zeros(x.shape)
     h = 0.0001
 
     # Iterate over all indexes in x
-    it = np.nditer(W, flags=['multi_index'], op_flags=['readwrite'])
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
-        # Evaluate loss at W + h
-        iW = it.multi_index
-        old_value = W[iW]
+        # Evaluate loss at x + h
+        ix = it.multi_index
+        old_value = x[ix]
         # Increment by h
-        W[iW] = old_value + h
-        # Evaluate loss(W + h)
-        loss_Wh = vectorized_loss(x, correct_class_index, W, b)
+        x[ix] = old_value + h
+        # Evaluate loss(x + h)
+        func_xh = func(x)
         # Restore to previous value
-        W[iW] = old_value
+        x[ix] = old_value
 
         # Compute the partial derivative
-        grad_W[iW] = (loss_Wh - loss_initial) / h
+        grad_x[ix] = (func_xh - initial) / h
         # Step to next dimension
         it.iternext()
-
-    grad_b = np.zeros(b.shape)
-    # Iterate over all indexes in b
-    it = np.nditer(b, flags=['multi_index'], op_flags=['readwrite'])
-    while not it.finished:
-        # Evaluate loss at b + h
-        ib = it.multi_index
-        old_value = b[ib]
-        # Increment by h
-        b[ib] = old_value + h
-        # Evaluate loss(b + h)
-        loss_bh = vectorized_loss(x, correct_class_index, W, b)
-        # Restore to previous value
-        b[ib] = old_value
-
-        # Compute the partial derivative
-        grad_b[ib] = (loss_bh - loss_initial) / h
-        # Step to next dimension
-        it.iternext()
-    return grad_W, grad_b
-
+    return grad_x
 
 def vectorized_loss(x, correct_class_index, W, b):
     scores = np.dot(W, x) + b
