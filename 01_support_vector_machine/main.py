@@ -2,31 +2,46 @@
 import numpy as np
 
 
-def analytic_gradient(W, x, b, y_expected):
+def analytic_gradient(W, x, b, correct_class_index):
     """
     Return the gradient for W and b given an input x and expected y
     """
     # Forward pass
+    import pdb
+    pdb.set_trace()
     W_dot_x = np.dot(W, x)
     y_actual = np.add(W_dot_x, b)
 
-    l_1_norm = np.linalg.norm(W, ord=1)
-    correct_class_index = np.argmax(y_expected)
+    l_1_norm = np.sum(np.abs(W))
     # Get the score for the correct class
-    sj = y_expected[correct_class_index]
+    sy = y_actual[correct_class_index]
     # Create an array with the value of the correct score
-    sj_array = np.mult(np.ones(3), sj)
+    sy_array = np.multiply(np.ones(y_actual.shape), sy)
 
-    s_diff = np.subtract(sj_array, y_actual)
-    s_diff_biased = np.add(s_diff, 1)
-    s_diff_biased_clamped = np.maximum(s_diff_biased, 0)
-    score_loss = np.sum(s_diff_biased_clamped)
+    score_diff = np.subtract(y_actual, sy_array)
+    score_diff_biased = np.add(score_diff, 1)
+    # Account for the fact that we don't calculate loss on sj-sj comparisons
+    score_diff_biased[correct_class_index] = 0
+    score_diff_biased_clamped = np.maximum(score_diff_biased, 0)
+    score_loss = np.sum(score_diff_biased_clamped)
     loss = score_loss + l_1_norm
 
     # Back propogation
-    d_loss_d_loss = 1
+    d_loss_d_loss = np.ones(b.shape)
     # Calculate the gradient contribution of the regularization step
-
+    d_reg_d_loss = np.ones(W.shape)
+    # Calculate the gradient contribution of the clamping
+    d_clamp_in_d_loss = np.copy(d_loss_d_loss) * score_diff_biased[score_diff_biased > 0]
+    # Calculate the gradient contribution of the bias
+    d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
+    # Calculate the gradient contribute of the score difference
+    d_y_d_loss= -1. * np.ones(b.shape) * d_bias_in_d_loss
+    # Calculate the gradient contribution of W dot x
+    d_W_dot_x_d_loss = np.ones(W.shape).T * d_y_d_loss
+    # Calculate the gradient contribution of W
+    W_grad = (d_W_dot_x_d_loss.T * x) + d_reg_d_loss
+    # Calculate the gradient contribution of b
+    b_grad = np.ones(b.shape) * d_y_d_loss
     return W_grad, b_grad
 
 
@@ -65,6 +80,9 @@ def vectorized_loss(x, correct_class_index, W, b):
     # makes it easier to take advantage of the vectorized approach as above
     margins[correct_class_index] = 0
     loss = np.sum(margins)
+    
+    regularization_cost = np.sum(np.abs(W)) 
+    loss += regularization_cost
     return loss
 
 

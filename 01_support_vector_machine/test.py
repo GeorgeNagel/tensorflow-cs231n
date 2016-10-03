@@ -17,16 +17,16 @@ class TestGradient(TestCase):
             x, correct_class_index, W, b)
         grad_W = numerical_gradient(fn_to_optimize, W)
         expected_grad_W = np.array([
-            [-1, -2, -3],
-            [1, 2, 3]
+            [0, -1, -2],
+            [2, 3, 4]
         ], dtype=np.float64)
-        self.assertTrue(np.allclose(grad_W, expected_grad_W))
+        np.testing.assert_allclose(grad_W, expected_grad_W)
 
         fn_to_optimize = lambda b: vectorized_loss(
             x, correct_class_index, W, b)
         grad_b = numerical_gradient(fn_to_optimize, b)
         expected_grad_b = np.array([-1, 1], dtype=np.float64)
-        self.assertTrue(np.allclose(grad_b, expected_grad_b))
+        np.testing.assert_allclose(grad_b, expected_grad_b)
 
 
 class TestVectorizedLoss(TestCase):
@@ -37,9 +37,22 @@ class TestVectorizedLoss(TestCase):
         correct_class_index = 0
 
         loss = vectorized_loss(x, correct_class_index, W, b)
-        self.assertTrue(np.isclose(loss, 20.0))
+        np.testing.assert_almost_equal(loss, 41)
 
 
 class TestAnalyticGradient(TestCase):
     def test_gradient(self):
-        pass
+        W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+        b = np.array([1, 2], dtype=np.float64)
+        x = np.array([1, 2, 3], dtype=np.float64)
+        correct_class_index = 0
+
+        grad_W, grad_b = analytic_gradient(W, x, b, correct_class_index)
+        expected_grad_W = np.array([
+            [0, -1, -2],
+            [2, 3, 4]
+        ], dtype=np.float64)
+        np.testing.assert_allclose(grad_W, expected_grad_W)
+
+        expected_grad_b = np.array([-1, 1], dtype=np.float64)
+        np.testing.assert_allclose(grad_b, expected_grad_b)
