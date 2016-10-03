@@ -12,7 +12,7 @@ def analytic_gradient(W, x, b, correct_class_index):
     W_dot_x = np.dot(W, x)
     y_actual = np.add(W_dot_x, b)
 
-    l_1_norm = np.sum(np.abs(W))
+    # l_1_norm = np.sum(np.abs(W))
     # Get the score for the correct class
     sy = y_actual[correct_class_index]
     # Create an array with the value of the correct score
@@ -22,24 +22,25 @@ def analytic_gradient(W, x, b, correct_class_index):
     score_diff_biased = np.add(score_diff, 1)
     # Account for the fact that we don't calculate loss on sj-sj comparisons
     score_diff_biased[correct_class_index] = 0
-    score_diff_biased_clamped = np.maximum(score_diff_biased, 0)
-    score_loss = np.sum(score_diff_biased_clamped)
-    loss = score_loss + l_1_norm
+    # score_diff_biased_clamped = np.maximum(score_diff_biased, 0)
+    # score_loss = np.sum(score_diff_biased_clamped)
+    # loss = score_loss + l_1_norm
 
     # Back propogation
     d_loss_d_loss = np.ones(b.shape)
     # Calculate the gradient contribution of the regularization step
     d_reg_d_loss = np.ones(W.shape)
     # Calculate the gradient contribution of the clamping
-    d_clamp_in_d_loss = np.copy(d_loss_d_loss) * score_diff_biased[score_diff_biased > 0]
+    d_clamp_in_d_loss = np.where(
+        score_diff_biased > 0, d_loss_d_loss, np.zeros(d_loss_d_loss.shape))
     # Calculate the gradient contribution of the bias
     d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
     # Calculate the gradient contribute of the score difference
-    d_y_d_loss= -1. * np.ones(b.shape) * d_bias_in_d_loss
+    d_y_d_loss = -1.0 * np.ones(b.shape) * d_bias_in_d_loss
     # Calculate the gradient contribution of W dot x
-    d_W_dot_x_d_loss = np.ones(W.shape).T * d_y_d_loss
+    d_W_dot_x_d_loss = np.ones(b.shape) * d_y_d_loss
     # Calculate the gradient contribution of W
-    W_grad = (d_W_dot_x_d_loss.T * x) + d_reg_d_loss
+    W_grad = np.outer(d_W_dot_x_d_loss, x) + d_reg_d_loss
     # Calculate the gradient contribution of b
     b_grad = np.ones(b.shape) * d_y_d_loss
     return W_grad, b_grad
@@ -73,6 +74,7 @@ def numerical_gradient(func, x):
         it.iternext()
     return grad_x
 
+
 def vectorized_loss(x, correct_class_index, W, b):
     scores = np.dot(W, x) + b
     margins = np.maximum(0, scores - scores[correct_class_index] + 1)
@@ -80,8 +82,8 @@ def vectorized_loss(x, correct_class_index, W, b):
     # makes it easier to take advantage of the vectorized approach as above
     margins[correct_class_index] = 0
     loss = np.sum(margins)
-    
-    regularization_cost = np.sum(np.abs(W)) 
+
+    regularization_cost = np.sum(np.abs(W))
     loss += regularization_cost
     return loss
 
@@ -90,8 +92,7 @@ def predict(W, x, b):
     linear_result = np.dot(W, x)
     linear_with_bias = linear_result + b
     best_class = np.argmax(linear_with_bias)
-    y_predicted = np.zeros(3)
-    return y_predicted
+    return best_class
 
 
 if __name__ == '__main__':

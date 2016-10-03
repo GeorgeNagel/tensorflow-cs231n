@@ -7,7 +7,7 @@ from main import numerical_gradient, vectorized_loss, analytic_gradient
 
 class TestGradient(TestCase):
     def test_numerical_gradient(self):
-        """ Test the analytic gradient by calculating a numerical gradient. """
+        """ Test the numerical gradient estimate. """
         W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
         b = np.array([1, 2], dtype=np.float64)
         x = np.array([1, 2, 3], dtype=np.float64)
