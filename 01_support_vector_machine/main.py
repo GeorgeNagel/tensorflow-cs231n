@@ -7,8 +7,6 @@ def analytic_gradient(W, x, b, correct_class_index):
     Return the gradient for W and b given an input x and expected y
     """
     # Forward pass
-    import pdb
-    pdb.set_trace()
     W_dot_x = np.dot(W, x)
     y_actual = np.add(W_dot_x, b)
 
@@ -36,7 +34,8 @@ def analytic_gradient(W, x, b, correct_class_index):
     # Calculate the gradient contribution of the bias
     d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
     # Calculate the gradient contribute of the score difference
-    d_y_d_loss = -1.0 * np.ones(b.shape) * d_bias_in_d_loss
+    d_y_d_loss = np.ones(b.shape) * d_bias_in_d_loss
+    d_y_d_loss[correct_class_index] = -1
     # Calculate the gradient contribution of W dot x
     d_W_dot_x_d_loss = np.ones(b.shape) * d_y_d_loss
     # Calculate the gradient contribution of W
