@@ -74,7 +74,7 @@ def numerical_gradient(func, x):
     return grad_x
 
 
-def vectorized_loss(x, correct_class_index, W, b):
+def single_point_loss(x, correct_class_index, W, b):
     scores = np.dot(W, x) + b
     margins = np.maximum(0, scores - scores[correct_class_index] + 1)
     # Setting the correct class margin to zero after the fact
@@ -84,6 +84,23 @@ def vectorized_loss(x, correct_class_index, W, b):
 
     regularization_cost = np.sum(np.abs(W))
     loss += regularization_cost
+    return loss
+
+
+def vectorized_loss(X, Y, W, b):
+    """ Fully-vectorized loss function. """
+    if X.ndim > 1:
+        number_of_data_points = X.shape[0]
+    else:
+        number_of_data_points = 1
+    scores = np.dot(W, X.T) + b
+    scores_diffed = (scores.T - scores[Y == 1]).T
+    margins = np.maximum(0, scores_diffed + 1)
+    # Set the correct class margin to zero after the fact
+    margins[Y == 1] = 0
+    hinge_loss = np.sum(margins)/number_of_data_points
+    regularization_loss = np.sum(np.abs(W))
+    loss = hinge_loss + regularization_loss
     return loss
 
 

@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import numpy as np
 
-from main import numerical_gradient, vectorized_loss, analytic_gradient
+from main import (
+    numerical_gradient, vectorized_loss, analytic_gradient, single_point_loss)
 
 
 class TestGradient(TestCase):
@@ -29,8 +30,27 @@ class TestGradient(TestCase):
         np.testing.assert_allclose(grad_b, expected_grad_b)
 
 
-class TestVectorizedLoss(TestCase):
-    def test_loss(self):
+class TestLoss(TestCase):
+    def test_single_point_loss(self):
+        W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+        b = np.array([1, 2], dtype=np.float64)
+        x = np.array([1, 2, 3], dtype=np.float64)
+        correct_class_index = 0
+
+        loss = single_point_loss(x, correct_class_index, W, b)
+        np.testing.assert_almost_equal(loss, 41)
+
+    def test_vectorized_loss(self):
+        W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+        b = np.array([1, 2], dtype=np.float64)
+        X = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+        Y = np.array([[1, 0], [0, 1]], dtype=np.float64)
+
+        loss = vectorized_loss(X, Y, W, b)
+        np.testing.assert_almost_equal(loss, 31)
+
+    def test_vectorized_loss_single_data_point(self):
+        """ Run the vectorized_loss function for a single data point. """
         W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
         b = np.array([1, 2], dtype=np.float64)
         x = np.array([1, 2, 3], dtype=np.float64)
