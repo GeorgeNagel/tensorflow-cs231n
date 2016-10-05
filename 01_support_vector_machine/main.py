@@ -2,6 +2,13 @@
 import numpy as np
 
 
+def analytic_gradient_vectorized(W, X, b, Y):
+    """
+    Return the gradient for W and b given a matrix of inputs X and outputs Y
+    """
+    pass
+
+
 def analytic_gradient(W, x, b, correct_class_index):
     """
     Return the gradient for W and b given an input x and expected y
