@@ -103,8 +103,15 @@ class TestAnalyticGradient(TestCase):
     def test_vectorized_gradient(self):
         W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
         b = np.array([1, 2], dtype=np.float64)
-        X = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
-        Y = np.array([[1, 0], [0, 1]], dtype=np.float64)
+        X = np.array([
+            [1, 4],
+            [2, 5],
+            [3, 6]
+        ], dtype=np.float64)
+        Y = np.array([
+            [1, 0],
+            [0, 1]
+        ], dtype=np.float64)
 
         grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
 

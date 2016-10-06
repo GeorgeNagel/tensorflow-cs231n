@@ -6,7 +6,38 @@ def analytic_gradient_vectorized(W, X, b, Y):
     """
     Return the gradient for W and b given a matrix of inputs X and outputs Y
     """
-    pass
+    if X.ndim > 1:
+        number_of_data_points = X.shape[1]
+    else:
+        number_of_data_points = 1
+    # Forward pass
+    import pdb
+    pdb.set_trace()
+    W_dot_X = np.dot(W, X)
+    scores = (W_dot_X.T + b).T
+    scores_diffed = (scores.T - scores[Y == 1]).T
+    scores_diffed_biased = scores_diffed + 1
+
+    # Back propogation
+    d_loss_d_loss = np.ones(b.shape)
+    # Calculate the gradient contribution of the regularization step
+    d_reg_d_loss = np.ones(W.shape)
+    # Calculate the gradient contribution of the clamping
+    d_clamp_in_d_loss = np.where(
+        scores_diffed_biased > 0, d_loss_d_loss, np.zeros(d_loss_d_loss.shape))
+
+    # Calculate the gradient contribution of the bias
+    d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
+    # Calculate the gradient contribute of the score difference
+    d_WX_b_d_loss = np.ones(b.shape) * d_bias_in_d_loss
+    d_WX_b_d_loss[Y == 1] = -1
+    # Calculate the gradient contribution of W dot X
+    d_W_dot_X_d_loss = np.ones(b.shape) * d_WX_b_d_loss
+    # Calculate the gradient contribution of W
+    W_grad = np.dot(d_W_dot_X_d_loss, X.T)/number_of_data_points + d_reg_d_loss
+    # Calculate the gradient contribution of b
+    b_grad = (np.ones(b.shape) * d_WX_b_d_loss)/number_of_data_points
+    return W_grad, b_grad
 
 
 def analytic_gradient(W, x, b, correct_class_index):
