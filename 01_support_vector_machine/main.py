@@ -180,8 +180,6 @@ def test_train_split(iris_data, train_fraction):
     return X_train, Y_train, X_test, Y_test
 
 if __name__ == '__main__':
-    import pdb
-    pdb.set_trace()
     from tensorflow.contrib import learn
     # The output y will be calculated via
     # y = W * x + b
@@ -197,12 +195,14 @@ if __name__ == '__main__':
     # By dimensional analysis, since W must be
     # multiplied by x and added to an array to get y, W must be 4x3.
     # 3x4 * 4x1 + 3x1 => 3x1
-    W_initial = np.zeros([3, 4])
+    W = np.zeros([3, 4])
     # Similarly, b must be a 3x1 array
-    b_initial = np.zeros([3, 1])
+    b = np.zeros(3)
 
     learning_rate = .1
 
     for i in range(100):
-        pass
-
+        grad_W, grad_b, loss = analytic_gradient_vectorized(W, X_train, b, Y_train)
+        W = W - grad_W*learning_rate
+        b = b - grad_b*learning_rate
+        print loss
