@@ -6,17 +6,21 @@ def analytic_gradient_vectorized(W, X, b, Y):
     """
     Return the gradient for W and b given a matrix of inputs X and outputs Y
     """
-    import pdb
-    pdb.set_trace()
     if X.ndim > 1:
         number_of_data_points = X.shape[1]
     else:
         number_of_data_points = 1
     # Forward pass
-    W_dot_X = np.dot(W, X)
-    scores = (W_dot_X.T + b).T
-    scores_diffed = (scores.T - scores[Y == 1]).T
+    W_dot_X = np.dot(W, X.T).T
+    scores = (W_dot_X + b)
+    # scores_diffed = (scores.T - scores[Y == 1]).T
+    # scores_diffed_biased = scores_diffed + 1
+    # scores_diffed_biased = np.where(Y == 1, 0, scores_diffed_biased)
+    correct_class_scores = scores[Y == 1]
+    scores_diffed = (scores.T - correct_class_scores).T
     scores_diffed_biased = scores_diffed + 1
+    scores_diffed_biased = np.where(Y == 1, 0, scores_diffed_biased)
+    clamped_scores = np.maximum(scores_diffed_biased, 0)
 
     # Back propogation
     d_loss_d_loss = np.ones(b.shape)
@@ -28,13 +32,14 @@ def analytic_gradient_vectorized(W, X, b, Y):
 
     # Calculate the gradient contribution of the bias
     d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
-    # Calculate the gradient contribute of the score difference
+    # Calculate the gradient contribute of the score difference and clamping
     d_WX_b_d_loss = np.ones(b.shape) * d_bias_in_d_loss
-    correct_class_stuff = -1 * np.sum(scores_diffed_biased > 0)
+    correct_class_values = -1 * np.sum(clamped_scores, axis=1)
+    d_WX_b_d_loss = np.where(Y == 1, correct_class_values, d_WX_b_d_loss)
     # Calculate the gradient contribution of W dot X
     d_W_dot_X_d_loss = np.ones(b.shape) * d_WX_b_d_loss
     # Calculate the gradient contribution of W
-    W_grad = np.dot(d_W_dot_X_d_loss, X.T)/number_of_data_points + d_reg_d_loss
+    W_grad = np.dot(d_W_dot_X_d_loss, X)/number_of_data_points + d_reg_d_loss
     # Calculate the gradient contribution of b
     b_grad = (np.ones(b.shape) * d_WX_b_d_loss)/number_of_data_points
     return W_grad, b_grad
@@ -128,14 +133,17 @@ def single_point_loss(x, correct_class_index, W, b):
 def vectorized_loss(X, Y, W, b):
     """ Fully-vectorized loss function. """
     if X.ndim > 1:
-        number_of_data_points = X.shape[1]
+        number_of_data_points = X.shape[0]
     else:
         number_of_data_points = 1
-    scores = np.dot(W, X) + b
-    scores_diffed = (scores.T - scores[Y == 1]).T
+    W_dot_X = np.dot(W, X.T).T
+    scores = (W_dot_X + b)
+    correct_class_scores = scores[Y == 1]
+    scores_diffed = (scores.T - correct_class_scores).T
     margins = np.maximum(0, scores_diffed + 1)
     # Set the correct class margin to zero after the fact
     margins[Y == 1] = 0
+
     hinge_loss = np.sum(margins)/number_of_data_points
     regularization_loss = np.sum(np.abs(W))
     loss = hinge_loss + regularization_loss

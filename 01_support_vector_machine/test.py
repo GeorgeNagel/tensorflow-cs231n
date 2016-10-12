@@ -8,29 +8,35 @@ from main import (
 
 
 def single_point_incorrect_test_data():
-    W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+    W = np.array([
+        [1, 2, 3],
+        [4, 5, 6]
+    ], dtype=np.float64)
     b = np.array([1, 2], dtype=np.float64)
     x = np.array([1, 2, 3], dtype=np.float64)
     correct_class_index = 0
-    expected_grad_W = np.array([
+    grad_W = np.array([
         [0, -1, -2],
         [2, 3, 4]
     ], dtype=np.float64)
-    expected_grad_b = np.array([-1, 1], dtype=np.float64)
-    return W, x, b, correct_class_index, expected_grad_W, expected_grad_b
+    grad_b = np.array([-1, 1], dtype=np.float64)
+    return W, x, b, correct_class_index, grad_W, grad_b
 
 
 def single_point_correct_test_data():
-    W = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+    W = np.array([
+        [1, 2, 3],
+        [4, 5, 6]
+    ], dtype=np.float64)
     b = np.array([1, 2], dtype=np.float64)
     x = np.array([1, 2, 3], dtype=np.float64)
     correct_class_index = 1
-    expected_grad_W = np.array([
+    grad_W = np.array([
         [1, 1, 1],
         [1, 1, 1]
     ], dtype=np.float64)
-    expected_grad_b = np.array([0, 0], dtype=np.float64)
-    return W, x, b, correct_class_index, expected_grad_W, expected_grad_b
+    grad_b = np.array([0, 0], dtype=np.float64)
+    return W, x, b, correct_class_index, grad_W, grad_b
 
 
 def vectorized_test_data():
@@ -40,66 +46,63 @@ def vectorized_test_data():
     ], dtype=np.float64)
     b = np.array([1, 2], dtype=np.float64)
     X = np.array([
-        [1, 4],
-        [2, 5],
-        [3, 6]
+        [1, 2, 3],
+        [1, 2, 3]
     ], dtype=np.float64)
     Y = np.array([
         [1, 0],
         [0, 1]
     ], dtype=np.float64)
-    expected_grad_W = np.array([
+    grad_W = np.array([
         [2.5, 2.5, 2.5],
         [1, 1, 1]
     ], dtype=np.float64)
-    expected_grad_b = np.array([-0.5, 0.5], dtype=np.float64)
-    return W, X, b, Y, expected_grad_W, expected_grad_b
+    grad_b = np.array([-0.5, 0.5], dtype=np.float64)
+    return W, X, b, Y, grad_W, grad_b
 
 
 def vectorized_test_data_all_incorrect():
     W = np.array([
-        [1, 1, 1],
-        [1, 1, 1]
+        [1, 2, 3],
+        [4, 5, 6]
     ], dtype=np.float64)
     b = np.array([1, 2], dtype=np.float64)
     X = np.array([
-        [1, 1],
-        [2, 2],
-        [3, 3]
+        [1, 2, 3],
+        [1, 2, 3]
     ], dtype=np.float64)
     Y = np.array([
-        [1, 1],
-        [0, 0]
+        [1, 0],
+        [1, 0]
     ], dtype=np.float64)
-    expected_grad_W = np.array([
-        [0.5, 0, -0.5],
+    grad_W = np.array([
+        [0, -1, -2],
         [2, 3, 4]
     ], dtype=np.float64)
-    expected_grad_b = np.array([0.5, 0], dtype=np.float64)
-    return W, X, b, Y, expected_grad_W, expected_grad_b
+    grad_b = np.array([-1, 1], dtype=np.float64)
+    return W, X, b, Y, grad_W, grad_b
 
 
 def vectorized_test_data_all_correct():
     W = np.array([
-        [1, 1, 1],
-        [1, 1, 1]
+        [1, 2, 3],
+        [4, 5, 6]
     ], dtype=np.float64)
     b = np.array([1, 2], dtype=np.float64)
     X = np.array([
-        [1, 1],
-        [2, 2],
-        [3, 3]
+        [1, 2, 3],
+        [1, 2, 3]
     ], dtype=np.float64)
     Y = np.array([
-        [0, 0],
-        [1, 1]
+        [0, 1],
+        [0, 1]
     ], dtype=np.float64)
-    expected_grad_W = np.array([
-        [2, 3, 4],
-        [0, -1, -2]
+    grad_W = np.array([
+        [1, 1, 1],
+        [1, 1, 1]
     ], dtype=np.float64)
-    expected_grad_b = np.array([-0.5, 0.5], dtype=np.float64)
-    return W, X, b, Y, expected_grad_W, expected_grad_b
+    grad_b = np.array([0, 0], dtype=np.float64)
+    return W, X, b, Y, grad_W, grad_b
 
 
 class TestSinglePointNumericalGradient(TestCase):
@@ -196,12 +199,31 @@ class TestLoss(TestCase):
         loss = vectorized_loss(X, Y, W, b)
         np.testing.assert_almost_equal(loss, 31)
 
-    def test_vectorized_loss_single_data_point(self):
+    def test_vectorized_loss_single_data_point_incorrect(self):
         """ Run the vectorized_loss function for a single data point. """
         W, x, b, correct_class_index, grad_W, grad_b = single_point_incorrect_test_data()  # noqa
 
         loss = vectorized_loss(x, correct_class_index, W, b)
         np.testing.assert_almost_equal(loss, 41)
+
+    def test_vectorized_loss_single_data_point_correct(self):
+        """ Run the vectorized_loss function for a single data point. """
+        W, x, b, correct_class_index, grad_W, grad_b = single_point_correct_test_data()  # noqa
+
+        loss = vectorized_loss(x, correct_class_index, W, b)
+        np.testing.assert_almost_equal(loss, 21)
+
+    def test_vectorized_loss_incorrect(self):
+        W, X, b, Y, grad_W, grad_b = vectorized_test_data_all_incorrect()
+
+        loss = vectorized_loss(X, Y, W, b)
+        np.testing.assert_almost_equal(loss, 41)
+
+    def test_vectorized_loss_correct(self):
+        W, X, b, Y, grad_W, grad_b = vectorized_test_data_all_correct()
+
+        loss = vectorized_loss(X, Y, W, b)
+        np.testing.assert_almost_equal(loss, 21)
 
 
 class TestAnalyticGradient(TestCase):
@@ -227,18 +249,18 @@ class TestAnalyticGradient(TestCase):
     #     np.testing.assert_allclose(grad_W, expected_grad_W)
     #     np.testing.assert_allclose(grad_b, expected_grad_b)
 
-    # def test_vectorized_all_incorrect(self):
-    #     W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_incorrect()  # noqa
-
-    #     grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
-
-    #     np.testing.assert_allclose(grad_W, expected_grad_W)
-    #     np.testing.assert_allclose(grad_b, expected_grad_b)
-
-    def test_analytic_gradient_vectorized_all_correct(self):
-        W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_correct()  # noqa
+    def test_vectorized_all_incorrect(self):
+        W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_incorrect()  # noqa
 
         grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
 
         np.testing.assert_allclose(grad_W, expected_grad_W)
         np.testing.assert_allclose(grad_b, expected_grad_b)
+
+    # def test_vectorized_all_correct(self):
+    #     W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_correct()  # noqa
+
+    #     grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
+
+    #     np.testing.assert_allclose(grad_W, expected_grad_W)
+    #     np.testing.assert_allclose(grad_b, expected_grad_b)
