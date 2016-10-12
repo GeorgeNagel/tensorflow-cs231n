@@ -39,8 +39,8 @@ def analytic_gradient_vectorized(W, X, b, Y):
     # The correct values get a -1 contribution for each incorrect class above the clamp threshold
     incorrect_class_contributions_to_correct_grad = np.where(clamped_scores > 0, -1, 0)
     correct_class_values = np.sum(incorrect_class_contributions_to_correct_grad, axis=1)
-
-    d_score_diff_d_loss = np.where(Y == 1, correct_class_values, d_score_diff_d_loss)
+    correct_class_values_matrix = np.broadcast_to(correct_class_values, (Y == 1).T.shape).T
+    d_score_diff_d_loss = np.where(Y == 1, correct_class_values_matrix, d_score_diff_d_loss)
     # Calculate the gradient contribution of W dot X
     d_W_dot_X_d_loss = np.ones(b.shape) * d_score_diff_d_loss
     # Calculate the gradient contribution of W
@@ -161,6 +161,7 @@ def predict(W, x, b):
     best_class = np.argmax(linear_with_bias)
     return best_class
 
+
 def test_train_split(iris_data, train_fraction):
     number_of_samples = len(iris_data[1])
     number_of_classes = 3
@@ -195,14 +196,15 @@ if __name__ == '__main__':
     # By dimensional analysis, since W must be
     # multiplied by x and added to an array to get y, W must be 4x3.
     # 3x4 * 4x1 + 3x1 => 3x1
-    W = np.zeros([3, 4])
+    W = np.random.uniform(-1.0, 1.0, [3, 4])
     # Similarly, b must be a 3x1 array
-    b = np.zeros(3)
+    b = np.random.uniform(-1.0, 1.0, (3,))
 
-    learning_rate = .1
+    learning_rate = .1 ** 4
 
-    for i in range(100):
+    for i in range(10000):
         grad_W, grad_b, loss = analytic_gradient_vectorized(W, X_train, b, Y_train)
+        print W
         W = W - grad_W*learning_rate
         b = b - grad_b*learning_rate
         print loss
