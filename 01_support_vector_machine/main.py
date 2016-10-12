@@ -6,13 +6,13 @@ def analytic_gradient_vectorized(W, X, b, Y):
     """
     Return the gradient for W and b given a matrix of inputs X and outputs Y
     """
+    import pdb
+    pdb.set_trace()
     if X.ndim > 1:
         number_of_data_points = X.shape[1]
     else:
         number_of_data_points = 1
     # Forward pass
-    import pdb
-    pdb.set_trace()
     W_dot_X = np.dot(W, X)
     scores = (W_dot_X.T + b).T
     scores_diffed = (scores.T - scores[Y == 1]).T
@@ -30,7 +30,7 @@ def analytic_gradient_vectorized(W, X, b, Y):
     d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
     # Calculate the gradient contribute of the score difference
     d_WX_b_d_loss = np.ones(b.shape) * d_bias_in_d_loss
-    d_WX_b_d_loss[Y == 1] = -1
+    correct_class_stuff = -1 * np.sum(scores_diffed_biased > 0)
     # Calculate the gradient contribution of W dot X
     d_W_dot_X_d_loss = np.ones(b.shape) * d_WX_b_d_loss
     # Calculate the gradient contribution of W
@@ -73,7 +73,7 @@ def analytic_gradient(W, x, b, correct_class_index):
     d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
     # Calculate the gradient contribute of the score difference
     d_y_d_loss = np.ones(b.shape) * d_bias_in_d_loss
-    d_y_d_loss[correct_class_index] = -1
+    d_y_d_loss[correct_class_index] = -1 * np.sum(score_diff_biased > 0)
     # Calculate the gradient contribution of W dot x
     d_W_dot_x_d_loss = np.ones(b.shape) * d_y_d_loss
     # Calculate the gradient contribution of W
@@ -128,10 +128,10 @@ def single_point_loss(x, correct_class_index, W, b):
 def vectorized_loss(X, Y, W, b):
     """ Fully-vectorized loss function. """
     if X.ndim > 1:
-        number_of_data_points = X.shape[0]
+        number_of_data_points = X.shape[1]
     else:
         number_of_data_points = 1
-    scores = np.dot(W, X.T) + b
+    scores = np.dot(W, X) + b
     scores_diffed = (scores.T - scores[Y == 1]).T
     margins = np.maximum(0, scores_diffed + 1)
     # Set the correct class margin to zero after the fact
