@@ -54,8 +54,8 @@ def vectorized_test_data():
         [0, 1]
     ], dtype=np.float64)
     grad_W = np.array([
-        [2.5, 2.5, 2.5],
-        [1, 1, 1]
+        [0.5, 0., -0.5],
+        [1.5, 2., 2.5]
     ], dtype=np.float64)
     grad_b = np.array([-0.5, 0.5], dtype=np.float64)
     return W, X, b, Y, grad_W, grad_b
@@ -105,7 +105,7 @@ def vectorized_test_data_all_correct():
     return W, X, b, Y, grad_W, grad_b
 
 
-class TestSinglePointNumericalGradient(TestCase):
+class TestNumericalGradient(TestCase):
     def test_numerical_gradient_incorrect(self):
         """ Test the numerical gradient on an incorrect data point. """
         W, x, b, correct_class_index, expected_grad_W, expected_grad_b = single_point_incorrect_test_data()  # noqa
@@ -241,13 +241,13 @@ class TestAnalyticGradient(TestCase):
         np.testing.assert_allclose(grad_W, expected_grad_W)
         np.testing.assert_allclose(grad_b, expected_grad_b)
 
-    # def test_vectorized(self):
-    #     W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data()
+    def test_vectorized(self):
+        W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data()
 
-    #     grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
+        grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
 
-    #     np.testing.assert_allclose(grad_W, expected_grad_W)
-    #     np.testing.assert_allclose(grad_b, expected_grad_b)
+        np.testing.assert_allclose(grad_W, expected_grad_W)
+        np.testing.assert_allclose(grad_b, expected_grad_b)
 
     def test_vectorized_all_incorrect(self):
         W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_incorrect()  # noqa
@@ -257,10 +257,10 @@ class TestAnalyticGradient(TestCase):
         np.testing.assert_allclose(grad_W, expected_grad_W)
         np.testing.assert_allclose(grad_b, expected_grad_b)
 
-    # def test_vectorized_all_correct(self):
-    #     W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_correct()  # noqa
+    def test_vectorized_all_correct(self):
+        W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_correct()  # noqa
 
-    #     grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
+        grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
 
-    #     np.testing.assert_allclose(grad_W, expected_grad_W)
-    #     np.testing.assert_allclose(grad_b, expected_grad_b)
+        np.testing.assert_allclose(grad_W, expected_grad_W)
+        np.testing.assert_allclose(grad_b, expected_grad_b)

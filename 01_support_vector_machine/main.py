@@ -7,7 +7,7 @@ def analytic_gradient_vectorized(W, X, b, Y):
     Return the gradient for W and b given a matrix of inputs X and outputs Y
     """
     if X.ndim > 1:
-        number_of_data_points = X.shape[1]
+        number_of_data_points = X.shape[0]
     else:
         number_of_data_points = 1
     # Forward pass
@@ -30,18 +30,19 @@ def analytic_gradient_vectorized(W, X, b, Y):
     d_clamp_in_d_loss = np.where(
         scores_diffed_biased > 0, d_loss_d_loss, np.zeros(d_loss_d_loss.shape))
 
-    # Calculate the gradient contribution of the bias
-    d_bias_in_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
-    # Calculate the gradient contribute of the score difference and clamping
-    d_WX_b_d_loss = np.ones(b.shape) * d_bias_in_d_loss
-    correct_class_values = -1 * np.sum(clamped_scores, axis=1)
-    d_WX_b_d_loss = np.where(Y == 1, correct_class_values, d_WX_b_d_loss)
+    # Calculate the gradient contribute of the score difference
+    d_score_diff_d_loss = np.ones(b.shape) * d_clamp_in_d_loss
+    # The correct values get a -1 contribution for each incorrect class above the clamp threshold
+    incorrect_class_contributions_to_correct_grad = np.where(clamped_scores > 0, -1, 0)
+    correct_class_values = np.sum(incorrect_class_contributions_to_correct_grad, axis=1)
+
+    d_score_diff_d_loss = np.where(Y == 1, correct_class_values, d_score_diff_d_loss)
     # Calculate the gradient contribution of W dot X
-    d_W_dot_X_d_loss = np.ones(b.shape) * d_WX_b_d_loss
+    d_W_dot_X_d_loss = np.ones(b.shape) * d_score_diff_d_loss
     # Calculate the gradient contribution of W
-    W_grad = np.dot(d_W_dot_X_d_loss, X)/number_of_data_points + d_reg_d_loss
+    W_grad = np.dot(d_W_dot_X_d_loss.T, X)/number_of_data_points + d_reg_d_loss
     # Calculate the gradient contribution of b
-    b_grad = (np.ones(b.shape) * d_WX_b_d_loss)/number_of_data_points
+    b_grad = np.sum((np.ones(b.shape) * d_score_diff_d_loss)/number_of_data_points, axis=0)
     return W_grad, b_grad
 
 
