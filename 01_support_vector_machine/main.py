@@ -22,6 +22,10 @@ def analytic_gradient_vectorized(W, X, b, Y):
     scores_diffed_biased = np.where(Y == 1, 0, scores_diffed_biased)
     clamped_scores = np.maximum(scores_diffed_biased, 0)
 
+    hinge_loss = np.sum(clamped_scores)/number_of_data_points
+    regularization_loss = np.sum(np.abs(W))
+    loss = hinge_loss + regularization_loss
+
     # Back propogation
     d_loss_d_loss = np.ones(b.shape)
     # Calculate the gradient contribution of the regularization step
@@ -43,7 +47,7 @@ def analytic_gradient_vectorized(W, X, b, Y):
     W_grad = np.dot(d_W_dot_X_d_loss.T, X)/number_of_data_points + d_reg_d_loss
     # Calculate the gradient contribution of b
     b_grad = np.sum((np.ones(b.shape) * d_score_diff_d_loss)/number_of_data_points, axis=0)
-    return W_grad, b_grad
+    return W_grad, b_grad, loss
 
 
 def analytic_gradient(W, x, b, correct_class_index):
@@ -157,12 +161,33 @@ def predict(W, x, b):
     best_class = np.argmax(linear_with_bias)
     return best_class
 
+def test_train_split(iris_data, train_fraction):
+    number_of_samples = len(iris_data[1])
+    number_of_classes = 3
+
+    X = iris_data[0]
+    correct_classes = iris_data[1]
+    Y = np.zeros([number_of_samples, number_of_classes])
+    Y[np.arange(number_of_samples), correct_classes] = 1
+
+    number_of_samples_train = round(number_of_samples * train_fraction)
+
+    X_train = X[:number_of_samples_train]
+    Y_train = Y[:number_of_samples_train]
+    X_test = X[number_of_samples_train:]
+    Y_test = Y[number_of_samples_train:]
+
+    return X_train, Y_train, X_test, Y_test
 
 if __name__ == '__main__':
+    import pdb
+    pdb.set_trace()
     from tensorflow.contrib import learn
     # The output y will be calculated via
     # y = W * x + b
-    iris = learn.datasets.load_dataset('iris')
+    iris_data = learn.datasets.load_dataset('iris')
+
+    X_train, Y_train, X_test, Y_test = test_train_split(iris_data, .8)
 
     # The loss function for an SVM
     # Li = Sum<j!=yi>(max(0, sj - sy + 1)) + L1norm(W)
@@ -175,3 +200,9 @@ if __name__ == '__main__':
     W_initial = np.zeros([3, 4])
     # Similarly, b must be a 3x1 array
     b_initial = np.zeros([3, 1])
+
+    learning_rate = .1
+
+    for i in range(100):
+        pass
+

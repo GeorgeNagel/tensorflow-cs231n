@@ -244,23 +244,26 @@ class TestAnalyticGradient(TestCase):
     def test_vectorized(self):
         W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data()
 
-        grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
+        grad_W, grad_b, loss = analytic_gradient_vectorized(W, X, b, Y)
 
         np.testing.assert_allclose(grad_W, expected_grad_W)
         np.testing.assert_allclose(grad_b, expected_grad_b)
+        np.testing.assert_almost_equal(loss, 31)
 
     def test_vectorized_all_incorrect(self):
         W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_incorrect()  # noqa
 
-        grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
+        grad_W, grad_b, loss = analytic_gradient_vectorized(W, X, b, Y)
 
         np.testing.assert_allclose(grad_W, expected_grad_W)
         np.testing.assert_allclose(grad_b, expected_grad_b)
+        np.testing.assert_almost_equal(loss, 41)
 
     def test_vectorized_all_correct(self):
         W, X, b, Y, expected_grad_W, expected_grad_b = vectorized_test_data_all_correct()  # noqa
 
-        grad_W, grad_b = analytic_gradient_vectorized(W, X, b, Y)
+        grad_W, grad_b, loss = analytic_gradient_vectorized(W, X, b, Y)
 
         np.testing.assert_allclose(grad_W, expected_grad_W)
         np.testing.assert_allclose(grad_b, expected_grad_b)
+        np.testing.assert_almost_equal(loss, 21)
