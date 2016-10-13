@@ -162,14 +162,29 @@ def predict(W, x, b):
     return best_class
 
 
+def accuracy(W, X_test, b, Y_test):
+    total_seen = 0
+    total_correct = 0
+    for x, y in zip(X_test, Y_test):
+        best_class = predict(W, x, b)
+        expected = np.argmax(y)
+        print("Best: %s. Expected: %s" % (best_class, expected))
+        total_seen += 1
+        if best_class == expected:
+            total_correct += 1
+    return float(total_correct) / float(total_seen)
+
+
 def test_train_split(iris_data, train_fraction):
     number_of_samples = len(iris_data[1])
     number_of_classes = 3
 
     X = iris_data[0]
+    np.random.shuffle(X)
     correct_classes = iris_data[1]
     Y = np.zeros([number_of_samples, number_of_classes])
     Y[np.arange(number_of_samples), correct_classes] = 1
+    np.random.shuffle(Y)
 
     number_of_samples_train = round(number_of_samples * train_fraction)
 
@@ -200,11 +215,16 @@ if __name__ == '__main__':
     # Similarly, b must be a 3x1 array
     b = np.random.uniform(-1.0, 1.0, (3,))
 
-    learning_rate = .1 ** 4
+    learning_rate = .1 ** 2
+    print "INITIAL W: %s" % W
 
     for i in range(10000):
         grad_W, grad_b, loss = analytic_gradient_vectorized(W, X_train, b, Y_train)
-        print W
+        print("W: %s" % W)
+        print("GRADW: %s" % grad_W)
+        print("loss: %s" % loss)
         W = W - grad_W*learning_rate
         b = b - grad_b*learning_rate
-        print loss
+
+    accy = accuracy(W, X_test, b, Y_test)
+    print "ACCURACY: %s" % accy
