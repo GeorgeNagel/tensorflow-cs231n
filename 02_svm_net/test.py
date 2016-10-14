@@ -36,6 +36,8 @@ class TestAdditionNode(TestCase):
             [7, 8, 9]
         ],  dtype=np.float64)
         self.node = AdditionNode()
+        self.expected_grad_1 = np.ones([2, 3])
+        self.expected_grad_2 = np.ones([2, 3])
 
     def test_forward(self):
         result = self.node.forward(self.input_1, self.input_2)
@@ -57,11 +59,11 @@ class TestAdditionNode(TestCase):
 
         np.testing.assert_allclose(
             gradients[0],
-            np.ones([2, 3])
+            self.expected_grad_1
         )
         np.testing.assert_allclose(
             gradients[1],
-            np.ones([2, 3])
+            self.expected_grad_2
         )
 
     def test_local_gradients_numerical(self):
@@ -77,11 +79,11 @@ class TestAdditionNode(TestCase):
 
         np.testing.assert_allclose(
             gradient_1,
-            np.ones([2, 3])
+            self.expected_grad_1
         )
         np.testing.assert_allclose(
             gradient_2,
-            np.ones([2, 3])
+            self.expected_grad_2
         )
 
 
@@ -97,6 +99,15 @@ class TestMultiplicationNode(TestCase):
             [13, 14, 15]
         ], dtype=np.float64)
         self.node = MultiplicationNode()
+        self.expected_grad_1 = np.array([
+            [24, 33, 42],
+            [24, 33, 42]
+        ], dtype=np.float64)
+        self.expected_grad_2 = np.array([
+            [54, 63, 72],
+            [57, 66, 75],
+            [60, 69, 78]
+        ], dtype=np.float64)
 
     def test_local_gradients_numerical(self):
         step_size = .1 ** 7
@@ -115,16 +126,12 @@ class TestMultiplicationNode(TestCase):
 
         np.testing.assert_allclose(
             gradient_1,
-            np.array([
-                [24, 33, 42],
-                [24, 33, 42]
-            ], dtype=np.float64)
+            self.expected_grad_1
         )
         np.testing.assert_allclose(
             gradient_2,
-            np.array([
-                [54, 63, 72],
-                [57, 66, 75],
-                [60, 69, 78]
-            ], dtype=np.float64)
+            self.expected_grad_2
         )
+
+    def test_local_gradients_analytical(self):
+        pass
