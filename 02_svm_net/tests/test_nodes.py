@@ -2,25 +2,24 @@ from unittest import TestCase
 
 import numpy as np
 
-from main import (
-    AdditionNode, MultiplicationNode, SVMLossNode, numerical_gradient)
+from main import numerical_gradient
+from net.nodes import (
+    AdditionNode, MultiplicationNode, SVMLossNode)
 
 
 class TestNumericalGradient(TestCase):
     def test_sumall_gradient(self):
         input_vector = np.ones([3, 5])
-        fn_to_optimize = lambda x: np.sum(x)
 
-        actual_gradient = numerical_gradient(fn_to_optimize, input_vector)
+        actual_gradient = numerical_gradient(lambda x: np.sum(x), input_vector)
 
         expected_gradient = np.ones([3, 5])
         np.testing.assert_allclose(expected_gradient, actual_gradient)
 
     def test_sumall_gradient_negative_input(self):
         input_vector = -1 * np.ones([3, 5])
-        fn_to_optimize = lambda x: np.sum(x)
 
-        actual_gradient = numerical_gradient(fn_to_optimize, input_vector)
+        actual_gradient = numerical_gradient(lambda x: np.sum(x), input_vector)
 
         expected_gradient = np.ones([3, 5])
         np.testing.assert_allclose(expected_gradient, actual_gradient)
@@ -155,6 +154,6 @@ class TestSVMLoss(TestCase):
             [10, 0],
             [10, 0]
         ])
-        correct_class_indexes = [0, 0]
+        correct_class_indexes = np.array([0, 0])
         loss = node.forward(scores, correct_class_indexes)
-        self.assertEqual(loss, 'abba')
+        self.assertEqual(loss, 0)
