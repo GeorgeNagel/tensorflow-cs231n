@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import numpy as np
 
-from main import AdditionNode, MultiplicationNode, numerical_gradient
+from main import (
+    AdditionNode, MultiplicationNode, SVMLossNode, numerical_gradient)
 
 
 class TestNumericalGradient(TestCase):
@@ -91,7 +92,7 @@ class TestMultiplicationNode(TestCase):
     def setUp(self):
         self.input_1 = np.array([
             [1, 2, 3],
-            [4, 5, 6]
+            [4, 5, 6],
         ], dtype=np.float64)
         self.input_2 = np.array([
             [7, 8, 9],
@@ -104,20 +105,20 @@ class TestMultiplicationNode(TestCase):
             [24, 33, 42]
         ], dtype=np.float64)
         self.expected_grad_2 = np.array([
-            [54, 63, 72],
-            [57, 66, 75],
-            [60, 69, 78]
+            [5, 5, 5],
+            [7, 7, 7],
+            [9, 9, 9]
         ], dtype=np.float64)
 
     def test_local_gradients_numerical(self):
-        step_size = .1 ** 7
+        step_size = .1 ** 6
 
         def loss_1(input_1):
             out = self.node.forward(input_1, self.input_2)
             return np.sum(out)
 
         def loss_2(input_2):
-            out = self.node.forward(self.input_2, input_2)
+            out = self.node.forward(self.input_1, input_2)
             return np.sum(out)
         gradient_1 = numerical_gradient(
             loss_1, self.input_1, step_size=step_size)
@@ -134,4 +135,26 @@ class TestMultiplicationNode(TestCase):
         )
 
     def test_local_gradients_analytical(self):
-        pass
+        self.node.forward(self.input_1, self.input_2)
+        gradient_1, gradient_2 = self.node.gradients()
+
+        np.testing.assert_allclose(
+            gradient_1,
+            self.expected_grad_1
+        )
+        np.testing.assert_allclose(
+            gradient_2,
+            self.expected_grad_2
+        )
+
+
+class TestSVMLoss(TestCase):
+    def test_single_point_loss_correct_class(self):
+        node = SVMLossNode()
+        scores = np.array([
+            [10, 0],
+            [10, 0]
+        ])
+        correct_class_indexes = [0, 0]
+        loss = node.forward(scores, correct_class_indexes)
+        self.assertEqual(loss, 'abba')
