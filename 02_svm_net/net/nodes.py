@@ -31,17 +31,10 @@ class MultiplicationNode(object):
         return [grad_1, grad_2]
 
 
-class SVMLossNode(object):
-    def forward(self, scores, correct_class_indexes):
-        expected_out = np.zeros(scores.shape)
-        for expected, index in zip(expected_out, correct_class_indexes):
-            expected[index] = 1
-        correct_class_scores = [
-            score[index] for score, index in zip(scores, correct_class_indexes)
-        ]
-        scores_diffed = scores - correct_class_scores
-        scores_diffed_margined = scores_diffed + 1
-        scores_clamped = np.maximum(scores_diffed_margined, 0)
-        scores_clamped[expected_out == 1] = 0
-        loss = np.sum(scores_clamped)
-        return loss
+class SumNode(object):
+    def forward(self, arr):
+        self.arr = arr
+        return np.sum(arr)
+
+    def gradients(self):
+        return [np.ones(self.arr.shape)]
