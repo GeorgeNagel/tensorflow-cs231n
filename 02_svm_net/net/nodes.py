@@ -50,3 +50,22 @@ class MaxNode(object):
         grad = np.ones(self.arr.shape)
         grad[self.arr < self.clamp_value] = 0
         return [grad]
+
+
+class ScalarMultiplyNode(object):
+    def forward(self, arr, scalar):
+        self.arr = arr
+        self.scalar = scalar
+        return arr * scalar
+
+    def gradients(self):
+        return [np.ones(self.arr.shape) * self.scalar]
+
+
+class ScalarAddNode(object):
+    def forward(self, arr, scalar):
+        self.arr = arr
+        return arr + scalar
+
+    def gradients(self):
+        return [np.ones(self.arr.shape)]
