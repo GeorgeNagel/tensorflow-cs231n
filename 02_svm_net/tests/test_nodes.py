@@ -3,7 +3,7 @@ from unittest import TestCase
 import numpy as np
 
 from main import numerical_gradient
-from net.nodes import AdditionNode, MultiplicationNode, SumNode
+from net.nodes import AdditionNode, MultiplicationNode, SumNode, MaxNode
 
 
 class TestAdditionNode(TestCase):
@@ -166,6 +166,46 @@ class TestSumNode(TestCase):
 
     def test_analytical_gradients(self):
         self.node.forward(self.arr)
+        gradients = self.node.gradients()
+        np.testing.assert_allclose(
+            gradients[0],
+            self.expected_grad
+        )
+
+
+class TestMaxNode(TestCase):
+    def setUp(self):
+        self.node = MaxNode()
+        self.arr = np.array([
+            [1, 2, 3],
+            [4, 5, 6],
+        ], dtype=np.float64)
+        self.clamp_value = 3.5
+        self.expected_forward = np.array([
+            [3.5, 3.5, 3.5],
+            [4, 5, 6]
+        ], dtype=np.float64)
+        self.expected_grad = np.array([
+            [0, 0, 0],
+            [1, 1, 1]
+        ])
+
+    def test_forward(self):
+        result = self.node.forward(self.arr, self.clamp_value)
+        np.testing.assert_allclose(result, self.expected_forward)
+
+    def test_numerical_gradients(self):
+        def fn_to_optimize(arr):
+            return np.sum(self.node.forward(arr, self.clamp_value))
+
+        gradient = numerical_gradient(fn_to_optimize, self.arr)
+        np.testing.assert_allclose(
+            gradient,
+            self.expected_grad
+        )
+
+    def test_analytical_gradients(self):
+        self.node.forward(self.arr, self.clamp_value)
         gradients = self.node.gradients()
         np.testing.assert_allclose(
             gradients[0],

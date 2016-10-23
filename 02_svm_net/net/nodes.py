@@ -38,3 +38,15 @@ class SumNode(object):
 
     def gradients(self):
         return [np.ones(self.arr.shape)]
+
+
+class MaxNode(object):
+    def forward(self, arr, clamp_value):
+        self.clamp_value = clamp_value
+        self.arr = arr
+        return np.maximum(arr, clamp_value)
+
+    def gradients(self):
+        grad = np.ones(self.arr.shape)
+        grad[self.arr < self.clamp_value] = 0
+        return [grad]
