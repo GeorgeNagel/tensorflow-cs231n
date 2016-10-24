@@ -5,7 +5,7 @@ import numpy as np
 from main import numerical_gradient
 from net.nodes import (
     AdditionNode, MultiplicationNode, SumNode, MaxNode,
-    ScalarMultiplyNode, ScalarAddNode)
+    ScalarMultiplyNode, ScalarAddNode, SelectNode)
 
 
 class TestAdditionNode(TestCase):
@@ -283,6 +283,47 @@ class TestScalarAddNode(TestCase):
     def test_analytical_gradient(self):
         self.node.forward(self.arr, self.scalar_value)
         gradients = self.node.gradients()
+        np.testing.assert_allclose(
+            gradients[0],
+            self.expected_grad
+        )
+
+
+class TestSelectNode(TestCase):
+    def setUp(self):
+        self.node = SelectNode()
+        self.arr = np.array([
+            [1, 2, 3],
+            [4, 5, 6],
+        ], dtype=np.float64)
+        self.select = np.array([
+            [1, 0, 0],
+            [0, 1, 0]
+        ])
+        self.expected_forward = np.array([
+            [1, 1, 1],
+            [5, 5, 5]
+        ], dtype=np.float64)
+        self.expected_grad = np.array([
+            [3, 0, 0],
+            [0, 3, 0]
+        ], dtype=np.float64)
+
+    def test_forward(self):
+        result = self.node.forward(self.arr, self.select)
+        np.testing.assert_allclose(result, self.expected_forward)
+
+    def test_numerical_gradient(self):
+        def fn_to_optimize(arr):
+            return np.sum(self.node.forward(arr, self.select))
+
+        gradient = numerical_gradient(fn_to_optimize, self.arr)
+        np.testing.assert_allclose(gradient, self.expected_grad)
+
+    def test_analytical_gradient(self):
+        self.node.forward(self.arr, self.select)
+        gradients = self.node.gradients()
+
         np.testing.assert_allclose(
             gradients[0],
             self.expected_grad

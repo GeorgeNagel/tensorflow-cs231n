@@ -69,3 +69,23 @@ class ScalarAddNode(object):
 
     def gradients(self):
         return [np.ones(self.arr.shape)]
+
+
+class SelectNode(object):
+    """ Select one value for each row in the input array. """
+
+    def forward(self, arr, select):
+        self.select = select
+        self.arr = arr
+        number_of_rows = arr.shape[0]
+        self.number_of_columns = arr.shape[1]
+        row_values = arr[select == 1].reshape([number_of_rows, 1])
+        selected_array = np.hstack(
+            [row_values for i in range(self.number_of_columns)]
+        )
+        return selected_array
+
+    def gradients(self):
+        gradient = np.zeros(self.arr.shape)
+        gradient[self.select == 1] = self.number_of_columns
+        return [gradient]
