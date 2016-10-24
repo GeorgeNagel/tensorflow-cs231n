@@ -1,5 +1,7 @@
 import numpy as np
 
+from utils import indexes_to_one_hot
+
 
 class AdditionNode(object):
     def forward(self, input_1, input_2):
@@ -93,14 +95,17 @@ class SelectNode(object):
 
 class SVMLossNode(object):
 
-    def forward(self, arr, correct_class_indexes):
-        import pdb
-        pdb.set_trace()
-        correct_scores_arr = SelectNode().forward(arr, correct_class_indexes)
+    def forward(self, arr, correct_class_indexes, number_of_classes):
+        correct_class_arr = indexes_to_one_hot(correct_class_indexes, number_of_classes)
+        correct_scores_arr = SelectNode().forward(arr, correct_class_arr)
         negated_correct_scores_arr = ScalarMultiplyNode().forward(correct_scores_arr, -1)
-        diffed_scores_arr = AdditionNode().forward(negated_correct_scores_arr, negated_correct_scores_arr)
+        diffed_scores_arr = AdditionNode().forward(arr, negated_correct_scores_arr)
+
         margined_diffed_scores_arr = ScalarAddNode().forward(diffed_scores_arr, 1)
-        clamped_diffed_scores = MaxNode().forward(margined_diffed_scores_arr, 0)
+        negative_one_hot = ScalarMultiplyNode().forward(correct_class_arr, -1)
+        margined_normalized_arr = ScalarAddNode().forward(negative_one_hot, margined_diffed_scores_arr)
+
+        clamped_diffed_scores = MaxNode().forward(margined_normalized_arr, 0)
         loss = SumNode().forward(clamped_diffed_scores)
         return loss
 

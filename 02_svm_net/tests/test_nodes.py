@@ -337,9 +337,21 @@ class SVMLossNodeTest(TestCase):
             [5, 3],
             [1, 1],
         ], dtype=np.float64)
+        self.number_of_classes = 2
         self.correct_class_indexes = np.array([0, 1])
-        self.expected_forward = 12
+        self.expected_forward = 1
+        self.expected_grad = np.array([
+            [0, 0],
+            [1, -1]
+        ])
 
     def test_forward(self):
-        result = self.node.forward(self.arr, self.correct_class_indexes)
+        result = self.node.forward(self.arr, self.correct_class_indexes, self.number_of_classes)
         np.testing.assert_allclose(result, self.expected_forward)
+
+    def test_numerical_gradient(self):
+        def fn_to_optimize(arr):
+            return self.node.forward(arr, self.correct_class_indexes, self.number_of_classes)
+
+        gradient = numerical_gradient(fn_to_optimize, self.arr)
+        np.testing.assert_allclose(gradient, self.expected_grad)

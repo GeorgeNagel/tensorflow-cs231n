@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from main import numerical_gradient, indexes_to_one_hot
+from utils import numerical_gradient, indexes_to_one_hot
 
 
 class TestNumericalGradient(TestCase):
