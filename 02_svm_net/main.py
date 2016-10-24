@@ -27,3 +27,10 @@ def numerical_gradient(func, x, step_size=0.0001):
         # Step to next dimension
         it.iternext()
     return grad_x
+
+
+def indexes_to_one_hot(indexes_array, number_of_columns):
+    number_of_rows = indexes_array.shape[0]
+    one_hot = np.zeros([number_of_rows, number_of_columns])
+    one_hot[np.arange(number_of_rows), indexes_array] = 1
+    return one_hot

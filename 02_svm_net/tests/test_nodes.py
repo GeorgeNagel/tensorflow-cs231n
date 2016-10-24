@@ -5,7 +5,7 @@ import numpy as np
 from main import numerical_gradient
 from net.nodes import (
     AdditionNode, MultiplicationNode, SumNode, MaxNode,
-    ScalarMultiplyNode, ScalarAddNode, SelectNode)
+    ScalarMultiplyNode, ScalarAddNode, SelectNode, SVMLossNode)
 
 
 class TestAdditionNode(TestCase):
@@ -328,3 +328,18 @@ class TestSelectNode(TestCase):
             gradients[0],
             self.expected_grad
         )
+
+
+class SVMLossNodeTest(TestCase):
+    def setUp(self):
+        self.node = SVMLossNode()
+        self.arr = np.array([
+            [5, 3],
+            [1, 1],
+        ], dtype=np.float64)
+        self.correct_class_indexes = np.array([0, 1])
+        self.expected_forward = 12
+
+    def test_forward(self):
+        result = self.node.forward(self.arr, self.correct_class_indexes)
+        np.testing.assert_allclose(result, self.expected_forward)

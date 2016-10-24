@@ -89,3 +89,20 @@ class SelectNode(object):
         gradient = np.zeros(self.arr.shape)
         gradient[self.select == 1] = self.number_of_columns
         return [gradient]
+
+
+class SVMLossNode(object):
+
+    def forward(self, arr, correct_class_indexes):
+        import pdb
+        pdb.set_trace()
+        correct_scores_arr = SelectNode().forward(arr, correct_class_indexes)
+        negated_correct_scores_arr = ScalarMultiplyNode().forward(correct_scores_arr, -1)
+        diffed_scores_arr = AdditionNode().forward(negated_correct_scores_arr, negated_correct_scores_arr)
+        margined_diffed_scores_arr = ScalarAddNode().forward(diffed_scores_arr, 1)
+        clamped_diffed_scores = MaxNode().forward(margined_diffed_scores_arr, 0)
+        loss = SumNode().forward(clamped_diffed_scores)
+        return loss
+
+    def gradient(self):
+        pass
