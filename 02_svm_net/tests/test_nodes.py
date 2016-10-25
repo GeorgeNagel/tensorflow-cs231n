@@ -360,7 +360,7 @@ class TestSelectNode(TestCase):
         )
 
 
-class SVMLossNodeTest(TestCase):
+class TestSVMLossNode(TestCase):
     def setUp(self):
         self.node = SVMLossNode()
         self.arr = np.array([
