@@ -215,6 +215,36 @@ class TestMaxNode(TestCase):
         )
 
 
+class TestMaxNodeGradientAtMax(TestCase):
+    """ Test a MaxNode with values at the clamp value. """
+    def setUp(self):
+        self.node = MaxNode()
+        self.arr = np.array([
+            [0, -1, -3],
+            [1, 0, 1]
+        ], dtype=np.float64)
+        self.clamp_value = 0.0
+        self.expected_grad = np.array([
+            [1, 0, 0],
+            [1, 1, 1]
+        ], dtype=np.float64)
+
+    def test_numerical_gradients(self):
+        def fn_to_optimize(arr):
+            return np.sum(self.node.forward(arr, self.clamp_value))
+
+        gradient = numerical_gradient(fn_to_optimize, self.arr)
+        np.testing.assert_allclose(gradient, self.expected_grad)
+
+    def test_analytical_gradient(self):
+        self.node.forward(self.arr, self.clamp_value)
+        gradients = self.node.gradients()
+        np.testing.assert_allclose(
+            gradients[0],
+            self.expected_grad
+        )
+
+
 class TestScalarMultiplyNode(TestCase):
     def setUp(self):
         self.node = ScalarMultiplyNode()
