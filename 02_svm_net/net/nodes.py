@@ -96,18 +96,47 @@ class SelectNode(object):
 class SVMLossNode(object):
 
     def forward(self, arr, correct_class_indexes, number_of_classes):
+        # 0. Setup
         correct_class_arr = indexes_to_one_hot(correct_class_indexes, number_of_classes)
-        correct_scores_arr = SelectNode().forward(arr, correct_class_arr)
-        negated_correct_scores_arr = ScalarMultiplyNode().forward(correct_scores_arr, -1)
-        diffed_scores_arr = AdditionNode().forward(arr, negated_correct_scores_arr)
+        self.select_node = SelectNode()
+        correct_scores_arr = self.select_node.forward(arr, correct_class_arr)
 
-        margined_diffed_scores_arr = ScalarAddNode().forward(diffed_scores_arr, 1)
-        negative_one_hot = ScalarMultiplyNode().forward(correct_class_arr, -1)
-        margined_normalized_arr = ScalarAddNode().forward(negative_one_hot, margined_diffed_scores_arr)
+        # 1. scores - correct_class_scores
+        self.scalar_mult_neg_one_first = ScalarMultiplyNode()
+        negated_correct_scores_arr = self.scalar_mult_neg_one_first.forward(correct_scores_arr, -1)
+        self.addition_node_first = AdditionNode()
+        diffed_scores_arr = self.addition_node_first.forward(arr, negated_correct_scores_arr)
 
-        clamped_diffed_scores = MaxNode().forward(margined_normalized_arr, 0)
-        loss = SumNode().forward(clamped_diffed_scores)
+        # 2. diffed_scores + 1
+        self.add_one_node = ScalarAddNode()
+        margined_diffed_scores_arr = self.add_one_node.forward(diffed_scores_arr, 1)
+        self.scalar_mult_neg_one_second = ScalarMultiplyNode()
+        negative_one_hot = self.scalar_mult_neg_one_second.forward(correct_class_arr, -1)
+        self.addition_node_second = AdditionNode()
+        margined_normalized_arr = self.addition_node_second.forward(negative_one_hot, margined_diffed_scores_arr)
+
+        # 3. clamp to 0
+        self.clamp_node = MaxNode()
+        clamped_diffed_scores = self.clamp_node.forward(margined_normalized_arr, 0.0)
+        self.sum_node = SumNode()
+        loss = self.sum_node.forward(clamped_diffed_scores)
         return loss
 
-    def gradient(self):
-        pass
+    def gradients(self):
+        # 3
+        d_clamp_diffed_scores_d_loss = self.sum_node.gradients()[0]
+        d_margined_normalized_d_loss = self.clamp_node.gradients()[0] * d_clamp_diffed_scores_d_loss
+
+        # 2
+        d_margined_diffed_d_loss = self.addition_node_second.gradients()[1] * d_margined_normalized_d_loss
+        d_diffed_scores_d_loss = self.add_one_node.gradients()[0] * d_margined_diffed_d_loss
+
+        # 1
+        d_residual_arr_d_loss = self.addition_node_first.gradients()[0] * d_diffed_scores_d_loss
+        d_negated_correct_d_loss = self.addition_node_first.gradients()[1] * d_diffed_scores_d_loss
+        d_correct_scores_d_loss = self.scalar_mult_neg_one_first.gradients()[0] * d_negated_correct_d_loss
+
+        # 0
+        d_correct_class_d_loss = self.select_node.gradients()[0] * d_correct_scores_d_loss
+        d_arr_d_loss = d_correct_class_d_loss + d_residual_arr_d_loss
+        return [d_arr_d_loss]
